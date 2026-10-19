@@ -1,0 +1,42 @@
+[build-system]
+requires = ["hatchling>=1.25,<2"]
+build-backend = "hatchling.build"
+
+[project]
+name = "algen-release-guard"
+version = "0.2.0"
+description = "Evidence-based GitHub pull request readiness assessments on Algen Agent Runtime"
+requires-python = ">=3.12"
+readme = "README.md"
+# The CLI works on >=0.1.0a5; requirements.lock pins the Runtime Studio runs (0.1.0a7).
+dependencies = ["algen-agent-runtime>=0.1.0a5,<0.2", "python-dotenv>=1,<2", "pyyaml>=6,<7"]
+
+[project.optional-dependencies]
+dev = ["pytest>=9,<10", "pytest-asyncio>=1,<2", "ruff>=0.6,<1", "build>=1,<2", "hatchling>=1.25,<2"]
+
+[project.scripts]
+algen-release-guard = "algen_release_guard.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/algen_release_guard"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"config/agent.yaml" = "algen_release_guard/config/agent.yaml"
+
+# Studio imports this folder as custom code: Runtime loads the workflow hook provider named in
+# config/agent.yaml, and managed builds install requirements.lock with this source on PYTHONPATH.
+[tool.algen-studio.import]
+runtime-contract = "workflow_hook_provider_v1"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+markers = ["live: explicit external-service acceptance tests"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "ASYNC"]
+ignore = ["E501"]

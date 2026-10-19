@@ -1,0 +1,958 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:algen:schema:marketplace-manifest:v1",
+  "title": "Algen Marketplace Manifest v1",
+  "description": "Portable listing, delivery, capability, ownership, provenance, and security metadata for an Algen marketplace item.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "package_id",
+    "version",
+    "display_name",
+    "summary",
+    "license",
+    "taxonomy",
+    "framework",
+    "io_contract",
+    "pricing",
+    "deployment",
+    "delivery",
+    "capabilities",
+    "compatibility",
+    "evidence",
+    "ownership",
+    "provenance",
+    "security"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "algen-marketplace-manifest/v1"
+    },
+    "package_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:[.-][a-z0-9]+)*(?:/[a-z0-9]+(?:[._-][a-z0-9]+)*)?$",
+      "minLength": 3,
+      "maxLength": 160,
+      "description": "Stable publisher-scoped identifier; it must not be reused for an unrelated item."
+    },
+    "version": {
+      "$ref": "#/$defs/semver"
+    },
+    "display_name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 80
+    },
+    "summary": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 240
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 20000
+    },
+    "license": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "description": "SPDX expression when applicable, otherwise a stable policy identifier or URL."
+    },
+    "taxonomy": {
+      "$ref": "#/$defs/taxonomy"
+    },
+    "framework": {
+      "$ref": "#/$defs/framework"
+    },
+    "io_contract": {
+      "$ref": "#/$defs/io_contract"
+    },
+    "pricing": {
+      "$ref": "#/$defs/pricing"
+    },
+    "deployment": {
+      "$ref": "#/$defs/deployment"
+    },
+    "delivery": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/algen_package_delivery"
+        },
+        {
+          "$ref": "#/$defs/source_container_delivery"
+        },
+        {
+          "$ref": "#/$defs/hosted_agent_delivery"
+        }
+      ]
+    },
+    "capabilities": {
+      "type": "array",
+      "maxItems": 64,
+      "items": {
+        "oneOf": [
+          {
+            "$ref": "#/$defs/mcp_capability"
+          },
+          {
+            "$ref": "#/$defs/general_capability"
+          }
+        ]
+      }
+    },
+    "a2a": {
+      "$ref": "#/$defs/a2a_metadata"
+    },
+    "compatibility": {
+      "$ref": "#/$defs/compatibility"
+    },
+    "evidence": {
+      "$ref": "#/$defs/evidence"
+    },
+    "ownership": {
+      "$ref": "#/$defs/ownership"
+    },
+    "provenance": {
+      "$ref": "#/$defs/provenance"
+    },
+    "security": {
+      "$ref": "#/$defs/security"
+    },
+    "links": {
+      "$ref": "#/$defs/links"
+    }
+  },
+  "$defs": {
+    "semver": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(?:-[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?(?:\\+[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    },
+    "https_uri": {
+      "type": "string",
+      "format": "uri",
+      "pattern": "^https://[^@/#?]+(?:[/?#]|$)"
+    },
+    "taxonomy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "categories",
+        "tags"
+      ],
+      "properties": {
+        "categories": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 8,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z0-9]+(?:[._-][a-z0-9]+)*(?:/[a-z0-9]+(?:[._-][a-z0-9]+)*)*$",
+            "maxLength": 96
+          }
+        },
+        "tags": {
+          "type": "array",
+          "maxItems": 20,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z0-9]+(?:[._+-][a-z0-9]+)*$",
+            "maxLength": 40
+          }
+        }
+      }
+    },
+    "framework": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version"],
+      "properties": {
+        "name": {
+          "enum": ["algen", "langgraph", "crewai", "autogen", "openai-agents", "custom"]
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "adapter": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
+    },
+    "io_port": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "media_type", "required"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "maxLength": 80
+        },
+        "media_type": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9!#$&^_.+-]*/[a-zA-Z0-9][a-zA-Z0-9!#$&^_.+-]*$",
+          "maxLength": 128
+        },
+        "schema": {
+          "oneOf": [
+            { "type": "object" },
+            { "$ref": "#/$defs/https_uri" }
+          ]
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "required": {
+          "type": "boolean"
+        }
+      }
+    },
+    "io_contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["inputs", "outputs", "streaming"],
+      "properties": {
+        "inputs": {
+          "type": "array",
+          "maxItems": 32,
+          "items": { "$ref": "#/$defs/io_port" }
+        },
+        "outputs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 32,
+          "items": { "$ref": "#/$defs/io_port" }
+        },
+        "streaming": {
+          "type": "boolean"
+        }
+      }
+    },
+    "pricing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["model"],
+      "properties": {
+        "model": {
+          "enum": ["free", "one_time", "subscription", "usage", "contact"]
+        },
+        "currency": {
+          "type": "string",
+          "pattern": "^[A-Z]{3}$"
+        },
+        "amount_minor": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "billing_period": {
+          "enum": ["month", "year"]
+        },
+        "usage_unit": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "pricing_url": {
+          "$ref": "#/$defs/https_uri"
+        }
+      }
+    },
+    "deployment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["execution", "isolation"],
+      "properties": {
+        "execution": {
+          "enum": ["local", "customer_managed", "publisher_hosted"]
+        },
+        "isolation": {
+          "enum": ["none", "process", "container", "external_service"]
+        },
+        "minimum_cpu": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "minimum_memory_mb": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "gpu_required": {
+          "type": "boolean"
+        }
+      }
+    },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "url",
+        "digest",
+        "size_bytes",
+        "media_type"
+      ],
+      "properties": {
+        "url": {
+          "$ref": "#/$defs/https_uri"
+        },
+        "digest": {
+          "$ref": "#/$defs/sha256"
+        },
+        "size_bytes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "media_type": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9!#$&^_.+-]*/[a-zA-Z0-9][a-zA-Z0-9!#$&^_.+-]*$",
+          "maxLength": 128
+        }
+      }
+    },
+    "algen_package_delivery": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "format",
+        "artifact",
+        "entrypoint"
+      ],
+      "properties": {
+        "type": {
+          "const": "algen_package"
+        },
+        "format": {
+          "const": "algen-package/v1"
+        },
+        "artifact": {
+          "$ref": "#/$defs/artifact"
+        },
+        "entrypoint": {
+          "type": "string",
+          "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$)).+$",
+          "maxLength": 256
+        }
+      }
+    },
+    "source_container_delivery": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "image",
+        "digest"
+      ],
+      "properties": {
+        "type": {
+          "const": "source_container"
+        },
+        "image": {
+          "type": "string",
+          "pattern": "^(?!.*\\s)(?!.*://)(?!.*@)(?!.*(?:^|/)[^/]+:[^/]+$)[a-z0-9.-]+(?::[0-9]+)?(?:/[a-z0-9._-]+)+$",
+          "minLength": 1,
+          "maxLength": 512,
+          "description": "OCI image reference without embedded credentials."
+        },
+        "digest": {
+          "$ref": "#/$defs/sha256"
+        },
+        "command": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 64,
+          "items": {
+            "type": "string",
+            "maxLength": 1024
+          }
+        },
+        "architectures": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "linux/amd64",
+              "linux/arm64"
+            ]
+          }
+        }
+      }
+    },
+    "hosted_agent_delivery": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "endpoint",
+        "authentication"
+      ],
+      "properties": {
+        "type": {
+          "const": "hosted_agent"
+        },
+        "endpoint": {
+          "$ref": "#/$defs/https_uri"
+        },
+        "authentication": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type"
+          ],
+          "properties": {
+            "type": {
+              "enum": [
+                "oidc",
+                "oauth2",
+                "api_key",
+                "none"
+              ]
+            },
+            "issuer": {
+              "$ref": "#/$defs/https_uri"
+            },
+            "audience": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 512
+            },
+            "authorization_url": {
+              "$ref": "#/$defs/https_uri"
+            },
+            "token_url": {
+              "$ref": "#/$defs/https_uri"
+            },
+            "parameter_name": {
+              "type": "string",
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$"
+            }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "type": {
+                    "const": "oidc"
+                  }
+                }
+              },
+              "then": {
+                "properties": {
+                  "issuer": true,
+                  "audience": true
+                },
+                "required": [
+                  "issuer",
+                  "audience"
+                ]
+              }
+            },
+            {
+              "if": {
+                "properties": { "type": { "const": "oauth2" } },
+                "required": ["type"]
+              },
+              "then": {
+                "properties": {
+                  "authorization_url": true,
+                  "token_url": true
+                },
+                "required": ["authorization_url", "token_url"]
+              }
+            },
+            {
+              "if": {
+                "properties": { "type": { "const": "api_key" } },
+                "required": ["type"]
+              },
+              "then": {
+                "properties": {
+                  "parameter_name": true
+                },
+                "required": ["parameter_name"]
+              }
+            }
+          ]
+        },
+        "regions": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z]{2}(?:-[a-z0-9]+)+$",
+            "maxLength": 32
+          }
+        }
+      }
+    },
+    "mcp_capability": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "name",
+        "transport"
+      ],
+      "properties": {
+        "kind": {
+          "const": "mcp"
+        },
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(?:[._-][a-z0-9]+)*$",
+          "maxLength": 80
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "protocol_version": {
+          "type": "string",
+          "maxLength": 32
+        },
+        "transport": {
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "type",
+                "command"
+              ],
+              "properties": {
+                "type": {
+                  "const": "stdio"
+                },
+                "command": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 256
+                },
+                "args": {
+                  "type": "array",
+                  "maxItems": 64,
+                  "items": {
+                    "type": "string",
+                    "maxLength": 1024
+                  }
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "type",
+                "endpoint"
+              ],
+              "properties": {
+                "type": {
+                  "enum": [
+                    "streamable_http",
+                    "sse"
+                  ]
+                },
+                "endpoint": {
+                  "$ref": "#/$defs/https_uri"
+                }
+              }
+            }
+          ]
+        },
+        "tools": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          }
+        }
+      }
+    },
+    "general_capability": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "name"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "chat",
+            "completion",
+            "embedding",
+            "image",
+            "audio",
+            "workflow",
+            "tool"
+          ]
+        },
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(?:[._-][a-z0-9]+)*$",
+          "maxLength": 80
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 500
+        }
+      }
+    },
+    "a2a_metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "agent_card_url"
+      ],
+      "properties": {
+        "agent_card_url": {
+          "$ref": "#/$defs/https_uri"
+        },
+        "protocol_version": {
+          "type": "string",
+          "maxLength": 32
+        }
+      },
+      "description": "Optional discovery metadata. Presence is a publisher assertion, not proof of conformance."
+    },
+    "compatibility": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "studio"
+      ],
+      "properties": {
+        "studio": {
+          "type": "string",
+          "pattern": "^(\\^|~|>=|>|<=|<)?[0-9]+\\.[0-9]+\\.[0-9]+(?:\\s+(?:\\^|~|>=|>|<=|<)[0-9]+\\.[0-9]+\\.[0-9]+)*$",
+          "maxLength": 128,
+          "description": "Supported Studio semantic-version range."
+        },
+        "runtimes": {
+          "type": "array",
+          "maxItems": 16,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z0-9]+(?:[._/-][a-z0-9]+)*$",
+            "maxLength": 64
+          }
+        }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["review_status"],
+      "properties": {
+        "review_status": {
+          "enum": ["not_reviewed", "publisher_reviewed", "third_party_reviewed"]
+        },
+        "sbom_url": {
+          "$ref": "#/$defs/https_uri"
+        },
+        "assessment_url": {
+          "$ref": "#/$defs/https_uri"
+        },
+        "assessment_expires_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "tested_studio_versions": {
+          "type": "array",
+          "maxItems": 20,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/semver" }
+        }
+      }
+    },
+    "ownership": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "publisher_id",
+        "maintainers"
+      ],
+      "properties": {
+        "publisher_id": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(?:[._-][a-z0-9]+)*$",
+          "maxLength": 96
+        },
+        "maintainers": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 20,
+          "uniqueItems": true,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "name",
+              "contact"
+            ],
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100
+              },
+              "contact": {
+                "type": "string",
+                "format": "email",
+                "maxLength": 254
+              }
+            }
+          }
+        },
+        "source_repository": {
+          "$ref": "#/$defs/https_uri"
+        },
+        "support_url": {
+          "$ref": "#/$defs/https_uri"
+        }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "origin",
+        "generated_at"
+      ],
+      "properties": {
+        "origin": {
+          "enum": [
+            "first_party",
+            "third_party",
+            "fork",
+            "generated"
+          ]
+        },
+        "generated_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "source_commit": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{7,64}$"
+        },
+        "builder_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "attestation_url": {
+          "$ref": "#/$defs/https_uri"
+        },
+        "signature": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "url"
+          ],
+          "properties": {
+            "type": {
+              "enum": [
+                "sigstore_bundle",
+                "detached_signature"
+              ]
+            },
+            "url": {
+              "$ref": "#/$defs/https_uri"
+            },
+            "identity": {
+              "type": "string",
+              "maxLength": 512
+            }
+          }
+        }
+      }
+    },
+    "security": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "data_classes",
+        "data_handling",
+        "permissions",
+        "network",
+        "secrets",
+        "reporting_url"
+      ],
+      "properties": {
+        "data_classes": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "none",
+              "user_content",
+              "personal_data",
+              "credentials",
+              "financial_data",
+              "health_data"
+            ]
+          }
+        },
+        "data_handling": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["purposes", "retention", "training_use", "third_party_sharing"],
+          "properties": {
+            "purposes": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 20,
+              "uniqueItems": true,
+              "items": { "type": "string", "minLength": 1, "maxLength": 160 }
+            },
+            "retention": {
+              "enum": ["none", "session", "bounded", "indefinite"]
+            },
+            "retention_days": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 36500
+            },
+            "training_use": {
+              "enum": ["none", "opt_in", "required"]
+            },
+            "third_party_sharing": {
+              "type": "boolean"
+            },
+            "recipients": {
+              "type": "array",
+              "maxItems": 30,
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 160
+              }
+            }
+          }
+        },
+        "permissions": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["filesystem", "environment", "tools"],
+          "properties": {
+            "filesystem": {
+              "enum": ["none", "read", "read_write"]
+            },
+            "environment": {
+              "type": "array",
+              "maxItems": 64,
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "pattern": "^[A-Z][A-Z0-9_]*$",
+                "maxLength": 128
+              }
+            },
+            "tools": {
+              "type": "array",
+              "maxItems": 64,
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "pattern": "^[a-z0-9]+(?:[._:-][a-z0-9]+)*$",
+                "maxLength": 128
+              }
+            }
+          }
+        },
+        "network": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "outbound"
+          ],
+          "properties": {
+            "outbound": {
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "pattern": "^(\\*|[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?)$",
+                "maxLength": 253
+              },
+              "description": "Declared destination hostnames; '*' means unrestricted outbound access."
+            }
+          }
+        },
+        "secrets": {
+          "type": "array",
+          "maxItems": 64,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "name",
+              "purpose",
+              "required",
+              "scope"
+            ],
+            "properties": {
+              "name": {
+                "type": "string",
+                "pattern": "^[A-Z][A-Z0-9_]*$",
+                "maxLength": 128
+              },
+              "purpose": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 240
+              },
+              "required": {
+                "type": "boolean"
+              },
+              "scope": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 240
+              }
+            }
+          }
+        },
+        "reporting_url": {
+          "$ref": "#/$defs/https_uri"
+        }
+      }
+    },
+    "links": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "homepage": {
+          "$ref": "#/$defs/https_uri"
+        },
+        "documentation": {
+          "$ref": "#/$defs/https_uri"
+        },
+        "privacy": {
+          "$ref": "#/$defs/https_uri"
+        },
+        "terms": {
+          "$ref": "#/$defs/https_uri"
+        }
+      }
+    }
+  }
+}

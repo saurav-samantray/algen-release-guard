@@ -1,0 +1,7 @@
+{
+  "required_checks": [{"name": "REPLACE_WITH_YOUR_CI_CHECK_NAME", "kind": "check", "app_id": 15368}],
+  "minimum_approvals": 1,
+  "max_changed_files": 200,
+  "max_changed_lines": 3000,
+  "max_evidence_age_seconds": 300
+}

@@ -1,0 +1,14 @@
+{
+  "required_checks": [
+    {"name": "Python 3.12", "kind": "check", "app_id": 15368},
+    {"name": "Python 3.13", "kind": "check", "app_id": 15368},
+    {"name": "package", "kind": "check", "app_id": 15368},
+    {"name": "container", "kind": "check", "app_id": 15368},
+    {"name": "signoff", "kind": "check", "app_id": 15368},
+    {"name": "secrets", "kind": "check", "app_id": 15368}
+  ],
+  "minimum_approvals": 1,
+  "max_changed_files": 200,
+  "max_changed_lines": 3000,
+  "max_evidence_age_seconds": 300
+}
