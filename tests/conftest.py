@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+from types import SimpleNamespace
+
 import pytest
 
+from algen_release_guard import service
 from algen_release_guard.contracts import (
     Check,
     Evidence,
@@ -12,6 +15,18 @@ from algen_release_guard.contracts import (
     Target,
     timestamp,
 )
+
+
+@pytest.fixture(autouse=True)
+def no_trace_export(monkeypatch):
+    """Tests never send spans to Traccia; the shipped config is checked separately."""
+    settings = service.AppSettings
+
+    def validate(data):
+        data["telemetry"]["traccia"]["enabled"] = False
+        return settings.model_validate(data)
+
+    monkeypatch.setattr(service, "AppSettings", SimpleNamespace(model_validate=validate))
 
 
 @pytest.fixture

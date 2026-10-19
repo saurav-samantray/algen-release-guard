@@ -4,6 +4,7 @@ import json
 
 import httpx
 import pytest
+import yaml
 from algen_agent_runtime.orchestration.container import build_container
 from algen_agent_runtime.workflows import (
     MultiAgentWorkflowExecutor,
@@ -12,7 +13,7 @@ from algen_agent_runtime.workflows import (
 )
 from test_github import api_fixture
 
-from algen_release_guard.service import runtime_settings
+from algen_release_guard.service import SOURCE_CONFIG, runtime_settings
 from algen_release_guard.workflow import WORKFLOW
 
 
@@ -110,3 +111,12 @@ async def test_studio_input_schema_rejects_unlisted_fields(policy):
     # Callers cannot weaken the operator policy through run inputs.
     assert state.status == WorkflowStatus.FAILED
     assert "evidence" not in state.values
+
+
+def test_shipped_config_traces_runs_without_content():
+    telemetry = yaml.safe_load(SOURCE_CONFIG.read_text())["telemetry"]
+    assert telemetry["enabled"] is True
+    assert telemetry["include_content"] is False
+    assert telemetry["traccia"]["enabled"] is True
+    assert telemetry["traccia"]["redact_pii"] is True
+    assert "api_key" not in telemetry["traccia"], "a missing Traccia key must never fail a run"

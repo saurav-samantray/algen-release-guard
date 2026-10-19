@@ -118,10 +118,18 @@ storage:
   tool_execution_store: memory
   conversation_store: memory
 security:
-  allowed_http_hosts: [api.github.com, api.openai.com]
+  allowed_http_hosts: [api.github.com, api.openai.com, api.traccia.ai]
   allow_private_networks: false
   allow_subprocess_tools: false
-telemetry: {enabled: false}
+# Runs are traced with Traccia (model, tool and workflow spans tied to run IDs, PII redacted).
+# Set TRACCIA_API_KEY to send traces to Traccia's hosted service; content is never included.
+telemetry:
+  enabled: true
+  include_content: false
+  traccia:
+    enabled: true
+    environment: production
+    redact_pii: true
 
 # Studio-only: hook sources packaged into marketplace/standalone exports. Sources resolve under
 # the Studio host's ALGEN_AGENT_STUDIO_EXPORT_ASSET_ROOT (this folder). Runtime never sees this key.

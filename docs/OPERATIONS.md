@@ -39,8 +39,8 @@ immediately after collection. GitHub's own merge protections remain required.
 
 Run tests, lint, clean installation, dependency/secret scans and the live acceptance
 matrix on each release. Record Python/OS, runtime version, source commit, package
-digest, policy digest and live report IDs. Choose and include a distribution license
-before publishing. The project currently makes no license grant on the user's behalf.
+digest, policy digest and live report IDs. The project is licensed under Apache-2.0
+(`LICENSE`); report vulnerabilities as described in `SECURITY.md`.
 
 Rollback by pinning an earlier reviewed package version and rerunning from fresh
 evidence. Revoke exposed tokens through the relevant provider. Do not rewrite an

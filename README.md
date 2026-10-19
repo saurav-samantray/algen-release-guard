@@ -92,7 +92,13 @@ OpenAI receives only deterministic finding messages, IDs, and generic source
 labels. It does not receive repository names, PR titles/bodies, code, filenames,
 reviewer identities, credentials, or raw GitHub payloads. Evidence reports remain
 local and include repository/file/check metadata and reviewer handles; restrict
-access accordingly. No telemetry exporter is enabled by default.
+access accordingly.
+
+Runs are traced with Traccia: model, tool and workflow spans tied to run IDs, with PII
+redaction on and prompt/response content excluded. Spans are exported to `api.traccia.ai`;
+set `TRACCIA_API_KEY` to store them in your Traccia project. Without a key the export is
+rejected, and runs are unaffected. To turn tracing off, set `telemetry.traccia.enabled: false`
+in `config/agent.yaml`.
 
 This is a single-user local/CI application using ephemeral Runtime stores. It is
 not a hosted multitenant API. Interrupted read-only jobs restart from fresh evidence;

@@ -8,8 +8,9 @@ version = "0.2.0"
 description = "Evidence-based GitHub pull request readiness assessments on Algen Agent Runtime"
 requires-python = ">=3.12"
 readme = "README.md"
+license = { text = "Apache-2.0" }
 # The CLI works on >=0.1.0a5; requirements.lock pins the Runtime Studio runs (0.1.0a7).
-dependencies = ["algen-agent-runtime>=0.1.0a5,<0.2", "python-dotenv>=1,<2", "pyyaml>=6,<7"]
+dependencies = ["algen-agent-runtime[traccia]>=0.1.0a5,<0.2", "python-dotenv>=1,<2", "pyyaml>=6,<7"]
 
 [project.optional-dependencies]
 dev = ["pytest>=9,<10", "pytest-asyncio>=1,<2", "ruff>=0.6,<1", "build>=1,<2", "hatchling>=1.25,<2"]
