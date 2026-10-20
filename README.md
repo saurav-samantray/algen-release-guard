@@ -1,5 +1,7 @@
 # Algen Release Guard
 
+[![AgentStripes](https://agents.algen.ai/agents/algen-release-guard/stripes.svg)](https://agents.algen.ai/agents/algen-release-guard)
+
 A real, read-only GitHub pull-request readiness agent, packaged as a standard Algen
 Runtime workflow (`release-readiness` in `config/agent.yaml`). It reads GitHub REST
 APIs, applies explicit policy, and uses OpenAI to explain findings. The same workflow
